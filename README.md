@@ -1,6 +1,6 @@
 # Test mur communautaire en React Native (Expo CLI)
 
-Mur communautaire avec intégration d'une photo en paysage, une en portrait et 2 vidéos.
+Front end mur communautaire avec son [back end](https://github.com/breauking/backend-mur-communautaire.git).
 
 # Welcome to your Expo app 👋
 
