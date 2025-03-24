@@ -1,68 +1,80 @@
-import { Image, StyleSheet } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
-import { VideoView } from 'expo-video';
-import FeedScrollView from '@/components/FeedScrollView';
-import { useCustomVideoPlayer } from '@/hooks/useCustomVideoPlayer';
+import React, { useState } from 'react';
+import { TextInput, Button, View, Text, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router'
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Importation des assets (image en mode paysage, image portrait et 2 vidéos)
-const landscape = require('@/assets/images/paysage.jpg');
-const portrait = require('@/assets/images/portrait.jpg');
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-const videoSource1 = require('@/assets/videos/kl.mov');
-const videoSource2 = require('@/assets/videos/river.mov');
+  const router = useRouter();
 
-export default function HomeScreen() {
+  const login = async (email: string, password: string) => {
 
-  // Initialisation des lecteurs vidéos
-  const player1 = useCustomVideoPlayer(videoSource1)
-  const player2 = useCustomVideoPlayer(videoSource2)
+      try {
+        const response = await axios.post('http://192.168.1.54:3000/auth/login', { email, password });
+        await AsyncStorage.setItem('token', response.data.token);
+        router.replace('/(tabs)/feed');
+      } catch (error) {
+        console.error(error);
+      }
+  };
+
+  const handleLogin = () => {
+    login(email,password)
+  };
+
 
   return (
-    // les éléments images et vidéos ont la même structure -> factorisation possible
-    <FeedScrollView>
-      <ThemedView style={styles.stepContainer}>
-      <Image source={landscape}
-        style={styles.landscapePost}
-       />
-       </ThemedView>
-       <ThemedView style={styles.stepContainer}>
-      <Image source={portrait}
-        style={styles.portraitPost}
-       />
-       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <VideoView 
-        style={styles.reelPost}
-        player={player1}
+    <View style={styles.container}>
+      <Text style={styles.title}>Connexion</Text>
+      <TextInput 
+        placeholder="Email"
+        placeholderTextColor={'gray'}
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        keyboardType="email-address"
       />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <VideoView 
-        style={styles.reelPost}
-        player={player2}
+      <TextInput 
+        placeholder="Mot de passe"
+        placeholderTextColor={'gray'}
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        secureTextEntry
       />
-      </ThemedView>
-    </FeedScrollView>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Button title="Se connecter" onPress={handleLogin} />
+      <Button title="Créer un compte" onPress={() => router.push("/signUp")} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  stepContainer: {
-    marginBottom: 10
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  portraitPost: {
-    width: '100%',
-    height: 450 ,
-    resizeMode: 'cover' // L'image remplit l'espace sans distortion
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
   },
-  landscapePost: {
+  input: {
     width: '100%',
-    height: 245,
-    resizeMode: 'cover'
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    marginBottom: 10,
   },
-  reelPost: {
-    width: '100%',
-    height: 580,
-    resizeMode: 'cover'
-  }
+  error: {
+    color: 'red',
+    marginBottom: 10,
+  },
 });

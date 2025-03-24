@@ -1,38 +1,37 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/config/firebaseConfig';
+import { Stack } from 'expo-router';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+export default function Layout() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false); // Une fois l'authentification terminée, arrêter l'indicateur de chargement
+    });
 
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />; // Affiche un indicateur de chargement pendant la vérification de l'authentification
+  }
+  
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+    <Stack>
+        <Stack.Screen name="index" // login
+        options={{headerShown: false}}
+        />
+        <Stack.Screen name="signUp"
+        />
+        <Stack.Screen name="(tabs)"
+        options={{headerShown: false}}
+        />
+    </Stack>
+    
   );
 }
